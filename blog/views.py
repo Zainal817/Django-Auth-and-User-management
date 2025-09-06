@@ -34,6 +34,7 @@ def user_delete(request, user_id):
     user.delete()
     return redirect('user_list')
 
+@login_required
 def home(request):
     return render(request, "home.html")
 
@@ -54,17 +55,20 @@ def register(request):
 
 
 def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, "You are now logged in.")
-            return redirect("home")
-        else:
-            messages.error(request, "Invalid username or password.")
+    if request.session.has_key('_auth_user_hash'):
+        return redirect('/')
     else:
-        form = AuthenticationForm()
+        if request.method == "POST":
+            form = AuthenticationForm(data=request.POST)
+            if form.is_valid():
+                user = form.get_user()
+                login(request, user)
+                messages.success(request, "You are now logged in.")
+                return redirect("home")
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            form = AuthenticationForm()
     return render(request, "login.html", {"form": form})
 
 
